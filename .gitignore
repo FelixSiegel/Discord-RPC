@@ -130,12 +130,9 @@ dist
 .pnp.*
 
 # Other
-package-lock.json
-package.json
-eslint.config.mjs
-.mypy_cache/
-.conda/
-.idea/
-build/
-*.ipynb
-*.spec
+test.py
+
+# Added by cargo
+
+target/
+Cargo.lock

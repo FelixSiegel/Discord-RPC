@@ -1,5 +1,14 @@
 /*eslint no-unused-vars: ["error", { "argsIgnorePattern": "^_" }]*/
 
+setInterval(() => {
+    const data = {
+        "req_type": "update",
+        "host": "crunchyroll",
+    }
+    let response = browser.runtime.sendNativeMessage("anime_rpc_bridge", data);
+    response.then(onResponse, onError);
+}, 5000);
+
 browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
     console.info("Command of received data: ", data.cmd);
 
@@ -115,18 +124,8 @@ browser.runtime.onMessage.addListener(async (data, _sender, _sendResponse) => {
 
 // function for updating Presence
 function updateRPC(data) {
-    fetch("http://127.0.0.1:8000/rpc_anime", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(
-        (response) => {
-            console.log("Responded data: ", response)
-        }
-    )
+    let response = browser.runtime.sendNativeMessage("anime_rpc_bridge", data);
+    response.then(onResponse, onError);
 }
 
 // function for clearing Presence
@@ -135,16 +134,14 @@ function clearRPC() {
         "type": "clear"
     }
 
-    fetch("http://127.0.0.1:8000/rpc_anime", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(
-        (response) => {
-            console.log("Responded data: ", response)
-        }
-    )
+    let response = browser.runtime.sendNativeMessage("anime_rpc_bridge", data);
+    response.then(onResponse, onError);
+}
+
+function onResponse(response) {
+    console.log("Received: ", JSON.stringify(response, null, 2));
+}
+
+function onError(error) {
+    console.log(`Error: ${error}`);
 }

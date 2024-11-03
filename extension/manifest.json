@@ -23,8 +23,16 @@
         "storage",
         "tabs",
         "webRequest",
-        "http://127.0.0.1:8000/*"
+        "http://127.0.0.1:8000/*",
+        "nativeMessaging"
     ],
+
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "{1f26e356-1c37-476c-b2ea-c038e3f49bb3}",
+            "strict_min_version": "50.0"
+        }
+    },
 
     "browser_action": {
         "default_icon": "icons/logo-32.png",

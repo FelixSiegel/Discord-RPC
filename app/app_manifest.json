@@ -1,0 +1,7 @@
+{
+    "name": "anime_rpc_bridge",
+    "description": "Background app for the Anime Discord RPC Browser AddOn, allows you to get a rich presence display in Discord when watching anime, by communicating with the browser extension and the Discord client.",
+    "path": "/home/felix/work/python/Projects/Anime-Discord-RPC/app/target/release/anime_rpc_bridge",
+    "type": "stdio",
+    "allowed_extensions": ["{1f26e356-1c37-476c-b2ea-c038e3f49bb3}"]
+}
