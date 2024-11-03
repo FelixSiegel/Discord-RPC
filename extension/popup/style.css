@@ -557,7 +557,7 @@ html {
     margin: 0px 8px;
 }
 
-#server_status {
+#service_status {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;

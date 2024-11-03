@@ -412,41 +412,37 @@ function storage_log(key, value) {
 }
 
 /**
- * Check server status of the local flask server for rich presence connection and update status in the
- * server group section of the settings menu.
+ * Check the status of the native background service. If the service is running, rich presence updates can be sent to
+ * the service. If the service is not running, the user will be informed about the issue.
  *
  * @returns {void}
  */
-function checkServerStatus() {
-    fetch("http://127.0.0.1:8000/status", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json'
-        }
-    }).then(
-        response => {
-            if (response.ok === true) { return response.json() }
-            else { return response.statusText }
-        }
-    ).then(
+function checkNativeConnection() {
+    const data = {
+        "req_type": "ping"
+    };
+
+    let response = browser.runtime.sendNativeMessage("anime_rpc_bridge", data);
+    response.then(
         json => {
             console.log("Responded data: ", json)
-            if (json.status === 'ok') {
+            if (json.status === 'success' && json.message === 'pong') {
                 document.getElementById("status_img").src = "images/icons/correct.svg";
                 document.getElementById("status_img").classList.remove("rotating");
-                document.getElementById("server_status").innerText = "Server is running!";
-                document.getElementById("server_status").style.color = "#5bb66c";
+                document.getElementById("service_status").innerText = "Service is available!";
+                document.getElementById("service_status").style.color = "#5bb66c";
+            } else {
+                throw new Error("Background service can't be accessed properly!");
             }
-        }
-    ).catch(
+        },
         err => {
-            console.error("Error when fetching to Server: ", err)
+            console.error("Error when connecting to background service: ", err)
             document.getElementById("status_img").src = "images/icons/incorrect.svg";
             document.getElementById("status_img").classList.remove("rotating");
-            document.getElementById("server_status").innerText = "Server can't be accessed!";
-            document.getElementById("server_status").style.color = "red";
+            document.getElementById("service_status").innerText = "Service can't be accessed!";
+            document.getElementById("service_status").style.color = "red";
         }
-    )
+    );
 }
 
 
@@ -487,7 +483,7 @@ function update_session() {
         update_discord_name("user_name", item.dc_uname);
     }).catch(storage_err)
 
-    checkServerStatus();
+    checkNativeConnection();
 }
 
 
@@ -543,41 +539,24 @@ document.getElementById("dc_uname_inp").addEventListener("keyup", (e) => {
 
 document.getElementById("stop_btn").addEventListener("click", () => {
     const data = {
-        "type": "clear"
-    }
+        "req_type": "clear"
+    };
 
-    fetch("http://127.0.0.1:8000/rpc_anime", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(
-        response => {
-            if (response.ok === true) { return response.json() }
-            else { return response.statusText }
-        }
-    ).then(
+    let response = browser.runtime.sendNativeMessage("anime_rpc_bridge", data);
+    response.then(
         json => {
             console.log("Responded data: ", json)
-            if (typeof json === 'string' || json instanceof String) {
-                // Error from Request (like Internal Server Error)
-                show_message(json, "red");
-            } else if (json["processed"] === 'true') {
-                // if Process is true -> request was successful
+            if (json.status === 'success') {
                 show_message("Stopped!", "#5865f2");
             } else {
-                // Process is false
                 show_message("invalid request!", "red");
             }
-        }
-    ).catch(
+        },
         err => {
-            console.error("Error when fetching to Server: ", err)
-            show_message("requesting server failed!", "red")
+            console.error("Error when sending message to native application: ", err)
+            show_message("background service unavailable!", "red")
         }
-    )
+    );
 })
 
 document.getElementById("sync_btn").addEventListener("click", () => {
@@ -611,7 +590,7 @@ document.getElementById("sync_btn").addEventListener("click", () => {
 document.getElementById("update_btn").addEventListener("click", () => {
     console.log("update")
     const data = {
-        type: "update",
+        req_type: "update",
         host: document.getElementById("host_name").innerText.toLowerCase(),
         details: document.getElementById("anime_value").innerText,
         state: document.getElementById("progress").innerText.replace("\n", ""),
@@ -627,38 +606,21 @@ document.getElementById("update_btn").addEventListener("click", () => {
         data["small_image"] = "true";
     }
 
-    fetch("http://127.0.0.1:8000/rpc_anime", {
-        method: "POST",
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).then(
-        response => {
-            if (response.ok === true) { return response.json() }
-            else { return response.statusText }
-        }
-    ).then(
+    let response = browser.runtime.sendNativeMessage("anime_rpc_bridge", data);
+    response.then(
         json => {
             console.log("Responded data: ", json)
-            if (typeof json === 'string' || json instanceof String) {
-                // Error from Request (like Internal Server Error)
-                show_message(json, "red")
-            } else if (json["processed"] === 'true') {
-                // if Process is true -> request was successful
-                show_message("Updated!", "#5865f2")
+            if (json.status === 'success') {
+                show_message("Updated!", "#5865f2");
             } else {
-                // Process is false
-                show_message("invalid request!", "red")
+                show_message("invalid request!", "red");
             }
-        }
-    ).catch(
+        },
         err => {
-            console.error("Error when fetching to Server: ", err)
-            show_message("requesting server failed!", "red")
+            console.error("Error when sending message to native application: ", err)
+            show_message("background service unavailable!", "red")
         }
-    )
+    );
 })
 
 
@@ -762,11 +724,6 @@ document.querySelectorAll(".group-title").forEach(group => {
     })
 })
 
-document.getElementById("check_status").addEventListener("click", checkServerStatus)
-document.getElementById("shutdown_btn").addEventListener("click", () => {
-    fetch("http://127.0.0.1:8000/exit").then(() => { checkServerStatus() })
-        .catch(() => { checkServerStatus() })
-})
-
+document.getElementById("check_status").addEventListener("click", checkNativeConnection)
 
 window.onload = update_session;

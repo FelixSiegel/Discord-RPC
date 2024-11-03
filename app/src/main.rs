@@ -9,9 +9,10 @@ fn main() {
 
     match request {
         lib::Request::Valid(json_val) => match json_val.req_type.as_str() {
-            "clear" => {
+            "ping" => {
                 let value = serde_json::json!({
-                    "status": "success"
+                    "status": "success",
+                    "message": "pong"
                 });
                 match lib::write_output(io::stdout(), &value) {
                     Err(why) => panic!("{}", why.to_string()),
@@ -36,6 +37,15 @@ fn main() {
                         Err(why) => panic!("{}", why.to_string()),
                         Ok(_) => (),
                     }
+                }
+            }
+            "clear" => {
+                let value = serde_json::json!({
+                    "status": "success"
+                });
+                match lib::write_output(io::stdout(), &value) {
+                    Err(why) => panic!("{}", why.to_string()),
+                    Ok(_) => (),
                 }
             }
             _ => {

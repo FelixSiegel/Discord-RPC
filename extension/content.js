@@ -32,7 +32,7 @@ async function communicateToBackground(host, anime, episode_details) {
             const messageArgs = {
                 cmd: "update",
                 args: {
-                    type: "update",
+                    req_type: "update",
                     host: host,
                     details: anime,
                     state: episode_details,
